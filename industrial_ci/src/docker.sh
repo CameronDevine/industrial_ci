@@ -78,12 +78,10 @@ function ici_run_cmd_in_docker() {
      run_opts+=(-v "$CCACHE_DIR:/root/.ccache" -e CCACHE_DIR=/root/.ccache)
   fi
 
-  local qemu_path
-  qemu_path=$(which qemu-arm-static) || true
-  if [[ $DOCKER_IMAGE == *"arm"* ]] && [ -z "$qemu_path" ]; then
-      error "please install qemu-user-static"
-  elif [ -n "$qemu_path" ]; then
-      run_opts+=(-v "$qemu_path:$qemu_path:ro")
+  if [ -n "$INJECT_QEMU" ]; then
+    local qemu_path
+    qemu_path=$(which "qemu-$INJECT_QEMU-static") || error "please install qemu-user-static"
+    run_opts+=(-v "$qemu_path:$qemu_path:ro")
   fi
 
   local cid
@@ -175,10 +173,10 @@ function ici_prepare_docker_image() {
 #   (None)
 
 function ici_build_default_docker_image() {
-  if [[ $DOCKER_BASE_IMAGE == *"arm"* ]] || [ "$ARM_SUPPORT" == true ]; then
+  if [ -n "$INJECT_QEMU" ]; then
     local qemu_path
-    qemu_path=$(which qemu-arm-static) || error "please install qemu-user-static"
-    echo "Inject qemu':"
+    qemu_path=$(which "qemu-$INJECT_QEMU-static") || error "please install qemu-user-static"
+    echo "Inject qemu..."
     local qemu_temp
     qemu_temp=$(mktemp -d)
     cat <<EOF > "$qemu_temp/Dockerfile"
@@ -186,6 +184,7 @@ function ici_build_default_docker_image() {
     COPY '$(basename $qemu_path)' '$qemu_path'
 EOF
     cp "$qemu_path" "$qemu_temp"
+    unset INJECT_QEMU
     export DOCKER_BASE_IMAGE="$DOCKER_BASE_IMAGE-qemu"
     DOCKER_IMAGE="$DOCKER_BASE_IMAGE" ici_docker_build "$qemu_temp" > /dev/null
     rm -rf "$qemu_temp"
