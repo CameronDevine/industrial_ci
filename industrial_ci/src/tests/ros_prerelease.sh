@@ -38,11 +38,11 @@ function setup_environment() {
     docker build -t "industrial-ci/prerelease" - <<EOF > /dev/null
 FROM ubuntu:xenial
 
-RUN apt-get update -qq && apt-get -qq install --no-install-recommends -y wget ca-certificates sudo
+RUN apt-get update -qq && apt-get -qq install --no-install-recommends -y wget ca-certificates
 
 RUN echo "deb ${ROS_REPOSITORY_PATH} xenial main" > /etc/apt/sources.list.d/ros-latest.list
 RUN apt-key adv --keyserver "${APTKEY_STORE_SKS}" --recv-key "${HASHKEY_SKS}" \
-    || { wget "${APTKEY_STORE_HTTPS}" -O - | sudo apt-key add -; }
+    || { wget "${APTKEY_STORE_HTTPS}" -O - | apt-key add -; }
 
 RUN apt-get update -qq \
     && apt-get -qq install --no-install-recommends -y \
