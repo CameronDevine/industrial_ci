@@ -78,6 +78,14 @@ function ici_run_cmd_in_docker() {
      run_opts+=(-v "$CCACHE_DIR:/root/.ccache" -e CCACHE_DIR=/root/.ccache)
   fi
 
+  local qemu_path
+  qemu_path=$(which qemu-arm-static) || true
+  if [[ $DOCKER_IMAGE == *"arm"* ]] && [ -z "$qemu_path" ]; then
+      error "please install qemu-user-static"
+  elif [ -n "$qemu_path" ]; then
+      run_opts+=(-v "$qemu_path:$qemu_path:ro")
+  fi
+
   local cid
   cid=$(docker create \
       --env-file "${ICI_SRC_PATH}"/docker.env \
