@@ -12,6 +12,7 @@ language: generic
 env:
   matrix:
     - ROS_DISTRO=lunar DOCKER_IMAGE='arm32v7/ros:lunar'  ADDITIONAL_DEBS="build-essential python-catkin-tools python-pip" DOCKER_RUN_OPTS="-v /usr/bin/qemu-arm-static:/usr/bin/qemu-arm-static"
+    - ROS_DISTRO=kinetic DOCKER_BASE_IMAGE='arm32v7/ubuntu:xenial'
 script:
   - sudo apt-get install qemu-user-static
   - industrial_ci/_wrap_test.sh # this script is only for internal use

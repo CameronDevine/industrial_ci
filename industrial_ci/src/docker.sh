@@ -167,6 +167,21 @@ function ici_prepare_docker_image() {
 #   (None)
 
 function ici_build_default_docker_image() {
+  if [[ $DOCKER_BASE_IMAGE == *"arm"* ]] || [ "$ARM_SUPPORT" == true ]; then
+    local qemu_path
+    qemu_path=$(which qemu-arm-static) || error "please install qemu-user-static"
+    echo "Inject qemu':"
+    local qemu_temp
+    qemu_temp=$(mktemp -d)
+    cat <<EOF > "$qemu_temp/Dockerfile"
+    FROM $DOCKER_BASE_IMAGE
+    COPY '$(basename $qemu_path)' '$qemu_path'
+EOF
+    cp "$qemu_path" "$qemu_temp"
+    export DOCKER_BASE_IMAGE="$DOCKER_BASE_IMAGE-qemu"
+    DOCKER_IMAGE="$DOCKER_BASE_IMAGE" ici_docker_build "$qemu_temp" > /dev/null
+    rm -rf "$qemu_temp"
+  fi
   # choose a unique image name
   export DOCKER_IMAGE="industrial-ci/$ROS_DISTRO/$DOCKER_BASE_IMAGE"
   echo "Building image '$DOCKER_IMAGE':"
@@ -177,6 +192,7 @@ function ici_build_default_docker_image() {
 
 function ici_generate_default_dockerfile() {
   cat <<EOF
+$inject_qemu
 FROM $DOCKER_BASE_IMAGE
 
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
