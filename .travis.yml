@@ -9,6 +9,8 @@ services:
 # Force travis to use its minimal image with default Python settings
 language: generic
 
+group: deprecated-2017Q4
+
 env:
   global:
     - BEFORE_SCRIPT='ls -la $HOME/.ssh'
