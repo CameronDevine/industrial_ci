@@ -13,11 +13,11 @@ group: deprecated-2017Q4
 
 env:
   global:
-    - BEFORE_SCRIPT='ls -la $HOME/.ssh'
+    - BEFORE_SCRIPT='ls -la $HOME/.ssh; id'
 
   matrix:
     - ROS_DISTRO=indigo
     - ROS_DISTRO=kinetic
 script:
-  - ls -la ~/.ssh
+  - eval "$BEFORE_SCRIPT"
   - industrial_ci/_wrap_test.sh # this script is only for internal use
