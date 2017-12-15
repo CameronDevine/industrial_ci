@@ -87,7 +87,7 @@ function ici_run_cmd_in_docker() {
   # pass common credentials to container
   for d in .docker .ssh .subversion; do
     if [ -d "$HOME/$d" ]; then
-      docker cp "$HOME/$d" "$cid:/root/"
+      docker_cp "$HOME/$d" "$cid:/root/"
     fi
   done
 
@@ -100,6 +100,9 @@ function ici_run_cmd_in_docker() {
   return $ret
 }
 
+function docker_cp {
+  tar -c -f - -C "$(dirname $1)" "$(basename $1)" | docker cp - $2
+}
 #######################################
 # wrapper for docker build
 #
