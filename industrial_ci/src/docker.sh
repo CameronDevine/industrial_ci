@@ -36,8 +36,8 @@ function ici_require_run_in_docker() {
   if ! [ "$IN_DOCKER" ]; then
     ici_prepare_docker_image
 
-    docker_uid=$(docker run --rm $DOCKER_IMAGE id -u)
-    docker_gid=$(docker run --rm $DOCKER_IMAGE id -g)
+    docker_uid=1234 #$(docker run --rm $DOCKER_IMAGE id -u)
+    docker_gid=1235 #$(docker run --rm $DOCKER_IMAGE id -g)
 
     local docker_target_repo_path=/root/src/$TARGET_REPO_NAME
     local docker_ici_src_path=/root/ici
