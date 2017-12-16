@@ -101,7 +101,7 @@ function ici_run_cmd_in_docker() {
 }
 
 function docker_cp {
-  tar -c -f - -C "$(dirname $1)" "$(basename $1)" | docker cp - $2
+  tar --owner=root --group=root -c -f - -C "$(dirname $1)" "$(basename $1)" | docker cp - $2
 }
 #######################################
 # wrapper for docker build
