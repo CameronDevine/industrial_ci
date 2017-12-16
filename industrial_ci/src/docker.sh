@@ -36,6 +36,9 @@ function ici_require_run_in_docker() {
   if ! [ "$IN_DOCKER" ]; then
     ici_prepare_docker_image
 
+    docker_uid=$(docker run --rm $DOCKER_IMAGE id -u)
+    docker_gid=$(docker run --rm $DOCKER_IMAGE id -g)
+
     local docker_target_repo_path=/root/src/$TARGET_REPO_NAME
     local docker_ici_src_path=/root/ici
     ici_run_cmd_in_docker -e "TARGET_REPO_PATH=$docker_target_repo_path" \
@@ -101,7 +104,7 @@ function ici_run_cmd_in_docker() {
 }
 
 function docker_cp {
-  tar --owner=root --group=root -c -f - -C "$(dirname $1)" "$(basename $1)" | docker cp - $2
+  tar --owner=${docker_uid:-root} --group=${docker_gid:-root} -c -f - -C "$(dirname $1)" "$(basename $1)" | docker cp - $2
 }
 #######################################
 # wrapper for docker build
