@@ -101,3 +101,4 @@ fi
 
 
 export TERM=${TERM:-dumb}
+export PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
