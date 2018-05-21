@@ -72,63 +72,25 @@ if [ "$CCACHE_DIR" ]; then
     ici_time_end  # setup_ccache
 fi
 
-ici_time_start setup_rosdep
+ici_time_section "setup_rosdep" ici_setup_rosdep
 
-# Setup rosdep
-rosdep --version
-if ! [ -d /etc/ros/rosdep/sources.list.d ]; then
-    sudo rosdep init
-fi
-ret_rosdep=1
-rosdep update || while [ $ret_rosdep != 0 ]; do sleep 1; rosdep update && ret_rosdep=0 || echo "rosdep update failed"; done
-
-ici_time_end  # setup_rosdep
-
-ici_time_start setup_rosws
+ici_time_start setup_workspace
 
 ## BEGIN: travis' install: # Use this to install any prerequisites or dependencies necessary to run your build ##
 # Create workspace
-export CATKIN_WORKSPACE=~/catkin_ws
-mkdir -p $CATKIN_WORKSPACE/src
-if [ ! -f $CATKIN_WORKSPACE/src/.rosinstall ]; then
-  $ROSWS init $CATKIN_WORKSPACE/src
-fi
-case "$UPSTREAM_WORKSPACE" in
-debian)
-    echo "Obtain deb binary for upstream packages."
-    ;;
-file) # When UPSTREAM_WORKSPACE is file, the dependended packages that need to be built from source are downloaded based on $ROSINSTALL_FILENAME file.
-    # Prioritize $ROSINSTALL_FILENAME.$ROS_DISTRO if it exists over $ROSINSTALL_FILENAME.
-    if [ -e $TARGET_REPO_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO ]; then
-        # install (maybe unreleased version) dependencies from source for specific ros version
-        $ROSWS merge -t $CATKIN_WORKSPACE/src file://$TARGET_REPO_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO
-    elif [ -e $TARGET_REPO_PATH/$ROSINSTALL_FILENAME ]; then
-        # install (maybe unreleased version) dependencies from source
-        $ROSWS merge -t $CATKIN_WORKSPACE/src file://$TARGET_REPO_PATH/$ROSINSTALL_FILENAME
-    else
-        error "UPSTREAM_WORKSPACE file '$TARGET_REPO_PATH/$ROSINSTALL_FILENAME[.$ROS_DISTRO]' does not exist"
-    fi
-    ;;
-http://* | https://*) # When UPSTREAM_WORKSPACE is an http url, use it directly
-    $ROSWS merge -t $CATKIN_WORKSPACE/src $UPSTREAM_WORKSPACE
-    ;;
-esac
+export WORKSPACE=~/catkin_ws
+export CATKIN_WORKSPACE="$WORKSPACE"
 
-# download upstream packages into workspace
-if [ -e $CATKIN_WORKSPACE/src/.rosinstall ]; then
-    # ensure that the target is not in .rosinstall
-    (cd $CATKIN_WORKSPACE/src; $ROSWS rm $TARGET_REPO_NAME 2> /dev/null \
-     && echo "$ROSWS ignored $TARGET_REPO_NAME found in $CATKIN_WORKSPACE/src/.rosinstall file. Its source fetched from your repository is used instead." || true) # TODO: add warn function
-    $ROSWS update -t $CATKIN_WORKSPACE/src
-fi
-# TARGET_REPO_PATH is the path of the downstream repository that we are testing. Link it to the catkin workspace
-ln -s $TARGET_REPO_PATH $CATKIN_WORKSPACE/src
+ici_create_workspace "$WORKSPACE"
+ici_workspace_fetch_remote "$WORKSPACE" "$UPSTREAM_WORKSPACE"
+
+ici_link_into_workspace "$WORKSPACE" "$TARGET_REPO_PATH"
 
 if [ "${USE_MOCKUP// }" != "" ]; then
     if [ ! -d "$TARGET_REPO_PATH/$USE_MOCKUP" ]; then
         error "mockup directory '$USE_MOCKUP' does not exist"
     fi
-    ln -s "$TARGET_REPO_PATH/$USE_MOCKUP" $CATKIN_WORKSPACE/src
+    ici_link_into_workspace "$WORKSPACE" "$TARGET_REPO_PATH/$USE_MOCKUP"
 fi
 
 catkin config --install
@@ -146,17 +108,7 @@ if [ "${BEFORE_SCRIPT// }" != "" ]; then
   ici_time_end  # before_script
 fi
 
-ici_time_start rosdep_install
-
-rosdep_opts=(-q --from-paths $CATKIN_WORKSPACE/src --ignore-src --rosdistro $ROS_DISTRO -y)
-if [ -n "$ROSDEP_SKIP_KEYS" ]; then
-  rosdep_opts+=(--skip-keys "$ROSDEP_SKIP_KEYS")
-fi
-set -o pipefail # fail if rosdep install fails
-rosdep install "${rosdep_opts[@]}" | { grep "executing command" || true; }
-set +o pipefail
-
-ici_time_end  # rosdep_install
+ici_time_section "rosdep_install" ici_install_workspace_dependencies "$WORKSPACE"
 
 if [ "$CATKIN_LINT" == "true" ] || [ "$CATKIN_LINT" == "pedantic" ]; then
     ici_time_start catkin_lint
@@ -172,7 +124,7 @@ ici_time_start catkin_build
 
 # for catkin
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order ${TARGET_REPO_PATH} --only-names`; fi
-# fall-back to all workspace packages if target repo does not contain any packages (#232) 
+# fall-back to all workspace packages if target repo does not contain any packages (#232)
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order $CATKIN_WORKSPACE/src --only-names`; fi
 if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
 if [ "$BUILDER" == catkin ]; then catkin build $OPT_VI --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ; fi
