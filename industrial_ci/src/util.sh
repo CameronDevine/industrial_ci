@@ -81,6 +81,14 @@ function ici_time_end {
     if [ "$DEBUG_BASH" ] && [ "$DEBUG_BASH" == true ]; then set -x; fi
 }
 
+function ici_time_section {
+    local tag=$1
+    shift
+    ici_time_start "$tag"
+    "$@"
+    ici_time_end
+}
+
 #######################################
 # exit function with handling for EXPECT_EXIT_CODE, ends the current fold if necessary
 #
