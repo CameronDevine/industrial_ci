@@ -52,7 +52,7 @@ function abi_build_workspace() {
 
     local cflags="-g -Og"
 
-    rosdep install -q --from-paths "$workspace/src" --ignore-src -y
+    ici_rosdep install "$workspace/src"
 
     catkin config --init --install -w "$workspace" --extend "/opt/ros/$ROS_DISTRO" --cmake-args -DCMAKE_C_FLAGS="$cflags" -DCMAKE_CXX_FLAGS="$cflags"
     catkin build -w "$workspace"
@@ -124,12 +124,11 @@ function run_abi_check() {
     abi_install > /dev/null
     ici_time_end  # install_abi_compliance_checker
 
-    ici_time_start abi_get_base
-    abi_prepare_src "/abicheck/old/$ABICHECK_VERSION/src" "$ABICHECK_URL"
-    ici_time_end  # abi_get_base
+    ici_time_section "abi_get_base" abi_prepare_src "/abicheck/old/$ABICHECK_VERSION/src" "$ABICHECK_URL"
 
-    ici_time_start setup_rosdep
-    abi_setup_rosdep
+    ici_time_section "setup_rosdep"
+        ici_setup_rosdep
+        ici_rosdep_install "$TARGET_REPO_PATH"
     ici_time_end  # setup_rosdep
 
     ici_time_start abi_build_new
@@ -138,9 +137,7 @@ function run_abi_check() {
     abi_build_workspace /abicheck new
     ici_time_end  # abi_build_new
 
-    ici_time_start abi_build_base
-    abi_build_workspace /abicheck/old "$ABICHECK_VERSION"
-    ici_time_end  # abi_build_base
+    ici_time_section "abi_build_base" abi_build_workspace /abicheck/old "$ABICHECK_VERSION"
 
     local reports_dir="/abicheck/reports/$ABICHECK_VERSION"
     mkdir -p "$reports_dir"
