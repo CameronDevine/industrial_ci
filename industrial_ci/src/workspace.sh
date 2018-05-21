@@ -80,5 +80,5 @@ function ici_install_workspace_dependencies {
     rosdep_opts+=(--skip-keys "$ROSDEP_SKIP_KEYS")
   fi
 
-  ici_rosdep_install "$workspace/src" "${rosdep_opts}"
+  ici_rosdep_install "$workspace/src" "${rosdep_opts[@]}"
 }
