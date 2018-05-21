@@ -65,7 +65,7 @@ function ici_rosdep_install {
   local path="$1"
   shift
 
-  rosdep_opts=(-q --from-paths "$path" --ignore-src --rosdistro $ROS_DISTRO -y "$@")
+  rosdep_opts=(-q --from-paths "$path" --ignore-src --rosdistro $ROS_DISTRO -y $@)
 
   set -o pipefail # fail if rosdep install fails
   rosdep install "${rosdep_opts[@]}" | { grep "executing command" || true; }
