@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+ici_mark_deprecated CATKIN_PARALLEL_JOBS "Please migrate to PARALLEL_PACKAGES."
+ici_mark_deprecated ROS_PARALLEL_JOBS "Please migrate to PARALLEL_JOBS."
 
 if [ "$PARALLEL_JOBS" ] && [ "$ROS_PARALLEL_JOBS" ]; then
   error "Cannot specify PARALLEL_JOBS and ROS_PARALLEL_JOBS together"

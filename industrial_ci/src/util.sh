@@ -40,7 +40,7 @@ function ici_color_output {
 #   ICI_TIME_ID (write-only)
 #   ICI_START_TIME (write-only)
 # Arguments:
-#   color_wrap (default: 32): Color code for the section delimitter text.
+#   color_wrap (default: ${ANSI_GREEN}): Color code for the section delimitter text.
 #   exit_code (default: $?): Exit code for display
 # Returns:
 #   (None)
@@ -68,7 +68,7 @@ function ici_time_start {
 #   ICI_TIME_ID (from ici_time_start, read-only)
 #   ICI_START_TIME (from ici_time_start, read-only)
 # Arguments:
-#   color_wrap (default: 32): Color code for the section delimitter text.
+#   color_wrap (default: ${ANSI_GREEN}): Color code for the section delimitter text.
 #   exit_code (default: $?): Exit code for display
 # Returns:
 #   (None)
@@ -122,14 +122,25 @@ function ici_exit {
     exit $exit_code
 }
 
+#######################################
 function ici_warn {
     ici_color_output ${ANSI_YELLOW} "$*"
+}
+
+function ici_mark_deprecated {
+  if ! [ "$IN_DOCKER" ]; then
+    local e=$1
+    shift
+    if [ "${!e}" ]; then
+      ici_warn "'$e' is deprecated. $*"
+    fi
+  fi
 }
 
 #######################################
 # Print an error message and calls "exit"
 #
-# * Wraps the section that is started by ici_time_start function with the echo color red (31).
+# * Wraps the section that is started by ici_time_start function with the echo color red (${ANSI_RED}).
 # * exit_code is taken from second argument or from the previous comman.
 # * If the final exit_code is 0, this function will exit 1 instead to enforce a test failure
 #
@@ -150,6 +161,14 @@ function error {
         ici_exit 1
     fi
     ici_exit $exit_code
+}
+
+function ici_enforce_deprecated {
+    local e=$1
+    shift
+    if [ "${!e}" ]; then
+      error "'$e' is not used anymore. $*"
+    fi
 }
 
 if ! which sudo > /dev/null; then
