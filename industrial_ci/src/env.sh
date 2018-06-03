@@ -31,6 +31,14 @@ if [ "$PARALLEL_TEST_PACKAGES" ] && [ "$CATKIN_PARALLEL_TEST_JOBS" ]; then
   error "Cannot specify PARALLEL_TEST_PACKAGES and CATKIN_PARALLEL_TEST_JOBS together"
 fi
 
+if [ "$PARALLEL_JOBS" ] && [ ! "$PARALLEL_PACKAGES" ]; then
+  export PARALLEL_PACKAGES=$PARALLEL_JOBS
+fi
+
+if [ "$PARALLEL_TEST_JOBS" ] && [ ! "$PARALLEL_TEST_PACKAGES" ]; then
+  export PARALLEL_TEST_PACKAGES=$PARALLEL_TEST_JOBS
+fi
+
 # .rosintall file name
 if [ ! "$ROSINSTALL_FILENAME" ]; then export ROSINSTALL_FILENAME=".travis.rosinstall"; fi
 # For apt key stores
