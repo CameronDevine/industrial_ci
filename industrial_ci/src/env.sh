@@ -16,10 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ ! "$CATKIN_PARALLEL_JOBS" ]; then export CATKIN_PARALLEL_JOBS="-p4"; fi
-if [ ! "$CATKIN_PARALLEL_TEST_JOBS" ]; then export CATKIN_PARALLEL_TEST_JOBS="$CATKIN_PARALLEL_JOBS"; fi
-if [ ! "$ROS_PARALLEL_JOBS" ]; then export ROS_PARALLEL_JOBS="-j8"; fi
-if [ ! "$ROS_PARALLEL_TEST_JOBS" ]; then export ROS_PARALLEL_TEST_JOBS="$ROS_PARALLEL_JOBS"; fi
+
+
+if [ "$PARALLEL_JOBS" ] && [ "$ROS_PARALLEL_JOBS" ]; then
+  error "Cannot specify PARALLEL_JOBS and ROS_PARALLEL_JOBS together"
+fi
+if [ "$PARALLEL_PACKAGES" ] && [ "$CATKIN_PARALLEL_JOBS" ]; then
+  error "Cannot specify PARALLEL_PACKAGES and CATKIN_PARALLEL_JOBS together"
+fi
+if [ "$PARALLEL_TEST_JOBS" ] && [ "$ROS_PARALLEL_TEST_JOBS" ]; then
+  error "Cannot specify PARALLEL_TEST_JOBS and ROS_PARALLEL_TEST_JOBS together"
+fi
+if [ "$PARALLEL_TEST_PACKAGES" ] && [ "$CATKIN_PARALLEL_TEST_JOBS" ]; then
+  error "Cannot specify PARALLEL_TEST_PACKAGES and CATKIN_PARALLEL_TEST_JOBS together"
+fi
+
 # .rosintall file name
 if [ ! "$ROSINSTALL_FILENAME" ]; then export ROSINSTALL_FILENAME=".travis.rosinstall"; fi
 # For apt key stores

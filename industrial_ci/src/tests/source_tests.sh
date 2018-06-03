@@ -53,6 +53,35 @@ function catkin {
   "$path" "$cmd" -w "$CATKIN_WORKSPACE" "$@"
 }
 
+function catkin_build {
+  local catkin_build_opts=($CATKIN_PARALLEL_JOBS)
+
+  if [ "$PARALLEL_PACKAGES" ]; then
+    catkin_build_opts+=(-p "$PARALLEL_PACKAGES")
+  fi
+  if [ "$PARALLEL_JOBS" ]; then
+    catkin_build_opts+=(-j "$PARALLEL_JOBS")
+  fi
+  if [ "$ROS_PARALLEL_JOBS" ]; then
+    catkin_build_opts+=(--make-args $ROS_PARALLEL_JOBS --)
+  fi
+  catkin build "${catkin_build_opts[@]}" "$@"
+}
+
+function catkin_run_tests {
+  local catkin_run_tests_opts=(${CATKIN_PARALLEL_TEST_JOBS:-$CATKIN_PARALLEL_JOBS})
+
+  if [ "$PARALLEL_PACKAGES" ] || [ "$PARALLEL_TEST_PACKAGES" ]; then
+    catkin_run_tests_opts+=(-p "${PARALLEL_TEST_PACKAGES:-$PARALLEL_PACKAGES}")
+  fi
+  if [ "$PARALLEL_JOBS" ] || [ "$PARALLEL_TEST_JOBS" ]; then
+    catkin_run_tests_opts+=(-j "${PARALLEL_TEST_JOBS:-$PARALLEL_JOBS}")
+  elif [ "$ROS_PARALLEL_JOBS" ] || [ "$ROS_PARALLEL_TEST_JOBS" ]; then
+    catkin_run_tests_opts+=(--make-args ${ROS_PARALLEL_TEST_JOBS:-$ROS_PARALLEL_JOBS} --)
+  fi
+  catkin build "${catkin_run_tests_opts[@]}" --catkin-make-args run_tests -- "$@"
+}
+
 ici_time_start setup_apt
 
 sudo apt-get update -qq
@@ -172,29 +201,30 @@ ici_time_start catkin_build
 
 # for catkin
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order ${TARGET_REPO_PATH} --only-names`; fi
-# fall-back to all workspace packages if target repo does not contain any packages (#232) 
+# fall-back to all workspace packages if target repo does not contain any packages (#232)
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order $CATKIN_WORKSPACE/src --only-names`; fi
 if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
-if [ "$BUILDER" == catkin ]; then catkin build $OPT_VI --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ; fi
+
+if [ "$BUILDER" == catkin ]; then catkin_build $OPT_VI --summarize  --no-status $BUILD_PKGS_WHITELIST; fi
 
 ici_time_end  # catkin_build
 
 if [ "$NOT_TEST_BUILD" != "true" ]; then
     ici_time_start catkin_build_downstream_pkgs
     if [ "$BUILDER" == catkin ]; then
-        catkin build $OPT_VI --summarize  --no-status $PKGS_DOWNSTREAM $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
+        catkin_build $OPT_VI --summarize  --no-status $PKGS_DOWNSTREAM
     fi
     ici_time_end  # catkin_build_downstream_pkgs
 
     ici_time_start catkin_build_tests
     if [ "$BUILDER" == catkin ]; then
-        catkin build --no-deps --catkin-make-args tests -- $OPT_VI --summarize  --no-status $PKGS_DOWNSTREAM $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS --
+        catkin_build --no-deps --catkin-make-args tests -- $OPT_VI --summarize  --no-status $PKGS_DOWNSTREAM
     fi
     ici_time_end  # catkin_build_tests
 
     ici_time_start catkin_run_tests
     if [ "$BUILDER" == catkin ]; then
-        catkin build --no-deps --catkin-make-args run_tests -- $OPT_RUN_V --no-status $PKGS_DOWNSTREAM $CATKIN_PARALLEL_TEST_JOBS --make-args $ROS_PARALLEL_TEST_JOBS --
+        catkin_run_tests --no-deps $OPT_RUN_V --no-status $PKGS_DOWNSTREAM
         if [ "${ROS_DISTRO}" == "hydro" ]; then
             PATH=/usr/local/bin:$PATH  # for installed catkin_test_results
             PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH
