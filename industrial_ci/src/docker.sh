@@ -208,7 +208,7 @@ EOF
   echo "Building image '$DOCKER_IMAGE':"
   local dockerfile=$(ici_generate_default_dockerfile)
   echo "$dockerfile"
-  ici_docker_build - <<< "$dockerfile" > /dev/null
+  ici_docker_build - <<< "$dockerfile"
 }
 
 function ici_generate_default_dockerfile() {
