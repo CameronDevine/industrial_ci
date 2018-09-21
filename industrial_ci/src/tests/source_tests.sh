@@ -160,7 +160,7 @@ ici_time_end  # rosdep_install
 
 if [ "$CATKIN_LINT" == "true" ] || [ "$CATKIN_LINT" == "pedantic" ]; then
     ici_time_start catkin_lint
-    sudo pip install catkin-lint
+    sudo pip install git+https://github.com/ipa-mdl/catkin_lint.git@test_hidden
     if [ "$CATKIN_LINT" == "pedantic" ]; then
     	CATKIN_LINT_ARGS="$CATKIN_LINT_ARGS --strict -W2"
     fi
@@ -172,7 +172,7 @@ ici_time_start catkin_build
 
 # for catkin
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order ${TARGET_REPO_PATH} --only-names`; fi
-# fall-back to all workspace packages if target repo does not contain any packages (#232) 
+# fall-back to all workspace packages if target repo does not contain any packages (#232)
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order $CATKIN_WORKSPACE/src --only-names`; fi
 if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
 if [ "$BUILDER" == catkin ]; then catkin build $OPT_VI --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ; fi
