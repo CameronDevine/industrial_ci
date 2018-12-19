@@ -25,4 +25,4 @@ export TARGET_REPO_PATH=$GITHUB_WORKFLOW
 export TARGET_REPO_NAME=${GITHUB_REPOSITORY##*/}
 export PYTHONUNBUFFERED=${PYTHONUNBUFFERED:1}
 
-env "$@" bash $DIR_THIS/industrial_ci/src/ci_main.sh
+env "$@" bash $DIR_THIS/ci_main.sh

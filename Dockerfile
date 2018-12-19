@@ -6,6 +6,6 @@ LABEL "com.github.actions.icon"="package"
 LABEL "com.github.actions.color"="blue"
 
 RUN mkdir /ici && apk --no-cache add bash coreutils
-COPY README.rst github_action.sh industrial_ci /ici/
+COPY README.rst industrial_ci/src/ /ici/
 
 ENTRYPOINT ["/ici/github_action.sh"]
