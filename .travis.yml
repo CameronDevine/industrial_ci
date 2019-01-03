@@ -3,6 +3,7 @@
 
 # Greatly inspired by JSK travis: https://github.com/jsk-ros-pkg/jsk_travis
 
+dist: xenial # or trusty
 services:
   - docker
 # Force travis to use its minimal image with default Python settings
