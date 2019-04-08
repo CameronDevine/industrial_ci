@@ -57,7 +57,7 @@ function run_source_tests {
     ici_run "setup_rosdep" setup_rosdep
 
     local upstream_ws=~/upstream_ws
-    local target_ws=~/catkin_ws
+    local target_ws=~/target_ws
     local downstream_ws=~/downstream_ws
     local extend="/opt/ros/$ROS_DISTRO"
 
