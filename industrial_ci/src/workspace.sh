@@ -42,7 +42,7 @@ function ici_resolve_scheme {
                 ;;
         esac
     else
-        error "could not parse URL '$url'"
+        ici_error "could not parse URL '$url'"
     fi
 
 }
@@ -116,11 +116,11 @@ function ici_prepare_sourcespace {
                 echo "Copying '$source"
                 cp -a "$source" "$sourcespace"
             else
-                error "'$source' is not a directory"
+                ici_error "'$source' is not a directory"
             fi
             ;;
         "")
-            error "source is empty string"
+            ici_error "source is empty string"
             ;;
         *)
             if [ -d "$TARGET_REPO_PATH/$source" ]; then
@@ -129,7 +129,7 @@ function ici_prepare_sourcespace {
             elif [ -f "$TARGET_REPO_PATH/$source" ]; then
                 ici_import_file "$sourcespace" "$TARGET_REPO_PATH/$source"
             else
-                error "cannot read source from '$source'"
+                ici_error "cannot read source from '$source'"
             fi
             ;;
         esac

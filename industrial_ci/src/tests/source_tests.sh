@@ -29,7 +29,7 @@ function install_catkin_lint {
 
 function run_source_tests {
     # shellcheck disable=SC1090
-    source "${ICI_SRC_PATH}/builders/$BUILDER.sh" || error "Builder '$BUILDER' not supported"
+    source "${ICI_SRC_PATH}/builders/$BUILDER.sh" || ici_error "Builder '$BUILDER' not supported"
 
     ici_require_run_in_docker # this script must be run in docker
 
@@ -38,7 +38,7 @@ function run_source_tests {
     # If more DEBs needed during preparation, define ADDITIONAL_DEBS variable where you list the name of DEB(S, delimitted by whitespace)
     if [ "$ADDITIONAL_DEBS" ]; then
         local debs=($ADDITIONAL_DEBS)
-        sudo apt-get install -qq -y "${debs[@]}" || error "One or more additional deb installation is failed. Exiting."
+        sudo apt-get install -qq -y "${debs[@]}" || ici_error "One or more additional deb installation is failed. Exiting."
     fi
     ici_time_end  # setup_apt
 
