@@ -141,7 +141,7 @@ function ici_setup_rosdep {
     # Setup rosdep
     rosdep --version
     if ! [ -d /etc/ros/rosdep/sources.list.d ]; then
-        sudo rosdep init
+        ici_asroot rosdep init
     fi
 
     update_opts=()
