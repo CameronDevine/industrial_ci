@@ -182,9 +182,17 @@ function ici_build_workspace {
 
     local ws_env="${name^^}_WORKSPACE"
     local sources=("$@" ${!ws_env})
+    local cmake_args_env="${name^^}_CMAKE_ARGS"
+    local cmake_args=(${CMAKE_ARGS} ${!cmake_args_env})
+    local args=()
+
+    if [ ${#cmake_args[@]} -gt 0 ]; then
+        args+=(--cmake-args "${cmake_args[@]}")
+    fi
+
     ici_run "setup_${name}_workspace" ici_prepare_sourcespace "$ws/src" "${sources[@]}"
     ici_run "install_${name}_dependencies" install_dependencies "$extend" "$ROSDEP_SKIP_KEYS" "$ws/src"
-    ici_run "build_${name}_workspace" builder_run_build "$extend" "$ws"
+    ici_run "build_${name}_workspace" builder_run_build "$extend" "$ws" "${args[@]}"
 }
 
 function ici_test_workspace {

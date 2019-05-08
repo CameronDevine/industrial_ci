@@ -31,7 +31,7 @@ function builder_run_build {
     local ws=$1; shift
     local opts=($OPT_VI)
     ici_exec_in_workspace "$extend" "$ws" catkin config --install
-    ici_exec_in_workspace "$extend" "$ws" catkin build "${opts[@]}" --summarize  --no-status
+    ici_exec_in_workspace "$extend" "$ws" catkin build "${opts[@]}" --summarize  --no-status "$@"
 }
 
 function builder_run_tests {
